@@ -3,13 +3,17 @@ import { encodeBase32, encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import type { User } from "@prisma/client";
+import type { User, Profile } from "@prisma/client";
 
 interface SessionData {
   id: string;
   userId: string;
   expiresAt: Date;
   user?: User;
+}
+
+type UserWithProfile = User & {
+  profile: Profile | null;
 }
 
 export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
@@ -58,7 +62,7 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 
   return {
     session: sessionWithUser,
-    user: sessionWithUser.user
+    user: sessionWithUser.user as UserWithProfile
   };
 }
 
@@ -69,6 +73,8 @@ export const getCurrentSession = cache(async (): Promise<SessionValidationResult
   }
   return await validateSessionToken(token);
 });
+
+
 
 export async function invalidateSession(sessionId: string): Promise<void> {
   await prisma.session.delete({
