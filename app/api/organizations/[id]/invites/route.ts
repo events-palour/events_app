@@ -1,12 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: Context
 ) {
   try {
     const session = await getCurrentSession();
@@ -14,10 +20,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: organizationId } = await params;
+    const organizationId = params.id;
 
     // Validate request body
-    const body = await req.json();
+    const body = await request.json();
     const validatedData = inviteMemberSchema.parse(body);
 
     // Get organization details
