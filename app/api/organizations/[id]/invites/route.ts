@@ -5,15 +5,9 @@ import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
-type Context = {
-  params: {
-    id: string;
-  };
-};
-
 export async function POST(
   req: NextRequest,
-  context: Context
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
@@ -21,7 +15,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const organizationId = context.params.id;
+    const organizationId = params.id;
 
     // Validate request body
     const body = await req.json();
