@@ -1,15 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 
-// Use the built-in Next.js types for route handlers
+interface RouteParams {
+  id: string;
+  token: string;
+}
+
+export interface RouteContext {
+  params: RouteParams;
+}
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; token: string } }
+  req: NextRequest,
+  context: RouteContext
 ) {
   try {
-    const organizationId = params.id;
-    const { token } = params;
+    const organizationId = context.params.id;
+    const { token } = context.params;
 
     // Verify the invite exists and matches the organization
     const invite = await prisma.organizationInvite.findUnique({
@@ -18,14 +26,14 @@ export async function POST(
     });
 
     if (!invite || invite.organizationId !== organizationId) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Invalid invite' },
         { status: 404 }
       );
     }
 
     if (invite.expiresAt < new Date()) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Invite expired' },
         { status: 400 }
       );
@@ -34,7 +42,7 @@ export async function POST(
     // Get current user's session
     const session = await getCurrentSession();
     if (!session.user) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -49,7 +57,7 @@ export async function POST(
     });
 
     if (existingMembership) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'You are already a member of this organization' },
         { status: 400 }
       );
@@ -69,15 +77,16 @@ export async function POST(
       where: { token },
     });
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: `Successfully joined ${invite.organization.name}`,
     });
   } catch (error) {
     console.error('Failed to accept invite:', error);
-    return NextResponse.json(
+    return Response.json(
       { error: 'Failed to accept invite' },
       { status: 500 }
     );
   }
 }
+
