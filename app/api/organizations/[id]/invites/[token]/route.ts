@@ -2,33 +2,48 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 
+type Params = {
+  id: string;
+  token: string;
+};
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; token: string } }
+  req: NextRequest,
+  { params }: { params: Params }
 ) {
   try {
-    const organizationId = params.id;
-    const token = params.token;
+    const { id: organizationId, token } = params;
 
-    // Rest of your existing logic...
+    // Validate invite
     const invite = await prisma.organizationInvite.findUnique({
       where: { token },
       include: { organization: true },
     });
 
     if (!invite || invite.organizationId !== organizationId) {
-      return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Invalid invite' },
+        { status: 404 }
+      );
     }
 
     if (invite.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Invite expired' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invite expired' },
+        { status: 400 }
+      );
     }
 
+    // Check authentication
     const session = await getCurrentSession();
-    if (!session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
+    // Check existing membership
     const existingMembership = await prisma.organizationMember.findFirst({
       where: {
         organizationId,
@@ -43,22 +58,26 @@ export async function POST(
       );
     }
 
-    await prisma.organizationMember.create({
-      data: {
-        organizationId,
-        userId: session.user.id,
-        role: 'MEMBER',
-      },
-    });
-
-    await prisma.organizationInvite.delete({ where: { token } });
+    // Create membership and delete invite
+    await prisma.$transaction([
+      prisma.organizationMember.create({
+        data: {
+          organizationId,
+          userId: session.user.id,
+          role: 'MEMBER',
+        },
+      }),
+      prisma.organizationInvite.delete({
+        where: { token }
+      })
+    ]);
 
     return NextResponse.json({
       success: true,
       message: `Successfully joined ${invite.organization.name}`,
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    console.error('Error accepting invite:', error);
     return NextResponse.json(
       { error: 'Failed to accept invite' },
       { status: 500 }
