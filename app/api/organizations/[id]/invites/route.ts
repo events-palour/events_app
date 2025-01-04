@@ -1,14 +1,13 @@
-import { NextRequest } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
-// Using inline type for the params
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { [key: string]: string | string[] } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
@@ -16,10 +15,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const organizationId = params.id as string;
+    const organizationId = (await params).id;
 
     // Validate request body
-    const body = await request.json();
+    const body = await req.json();
     const validatedData = inviteMemberSchema.parse(body);
 
     // Get organization details
@@ -88,9 +87,16 @@ export async function POST(
     return NextResponse.json(invite);
   } catch (error) {
     console.error('Error creating invite:', error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: 'Failed to create invite' },
+      { error: 'An unexpected error occurred' },
       { status: 500 }
     );
   }
 }
+
