@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,8 +23,7 @@ export const ImageUpload = ({ value, onChange, error }: ImageUploadProps) => {
 
       const base64 = await fileToBase64(file);
       onChange(base64);
-    } catch (error) {
-      console.error("Error processing file:", error);
+    } catch {
       onChange(null);
     }
   };
@@ -38,11 +38,16 @@ export const ImageUpload = ({ value, onChange, error }: ImageUploadProps) => {
       >
         {value ? (
           <div className="relative w-32 h-32 mx-auto">
-            <img
-              src={value}
-              alt="Organization logo"
-              className="w-full h-full object-cover rounded-lg"
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={value}
+                alt="Organization logo"
+                fill
+                sizes="128px"
+                className="object-cover rounded-lg"
+                priority
+              />
+            </div>
             <Button
               variant="destructive"
               size="icon"

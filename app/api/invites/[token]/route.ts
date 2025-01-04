@@ -4,17 +4,17 @@ import { getCurrentSession } from '@/lib/server/session';
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string; token: string } }
+  { params }: { params: { token: string } }
 ) {
   try {
-    const { id: organizationId, token } = await params;
-
+    const token = params.token;
+    
     const invite = await prisma.organizationInvite.findUnique({
       where: { token },
       include: { organization: true },
     });
-
-    if (!invite || invite.organizationId !== organizationId) {
+    
+    if (!invite) {
       return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
     }
 
@@ -29,7 +29,7 @@ export async function POST(
 
     await prisma.organizationMember.create({
       data: {
-        organizationId,
+        organizationId: invite.organizationId,
         userId: session.user.id,
         role: 'MEMBER',
       },
