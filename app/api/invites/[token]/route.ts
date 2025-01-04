@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
+import { type NextRequest } from 'next/server';
 
 export async function POST(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: { token: string } }
 ) {
   try {
-    const token = params.token;
+    const token = context.params.token;
     
     const invite = await prisma.organizationInvite.findUnique({
       where: { token },
@@ -41,7 +42,6 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error accepting invite:', error);
     return NextResponse.json({ error: 'Failed to accept invite' }, { status: 500 });
   }
 }
