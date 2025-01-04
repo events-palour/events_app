@@ -5,13 +5,11 @@ import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
-interface RouteContext {
-  params: { id: string }
-}
+
 
 export async function POST(
   req: NextRequest,
-  { params }: RouteContext
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
