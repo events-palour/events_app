@@ -5,10 +5,10 @@ import { type NextRequest } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ organizationId: string; token: string }> }
+  { params }: { params: Promise<{ token: string }> }
 ): Promise<NextResponse> {
   try {
-    const { organizationId, token } = await params;
+    const token = (await params).token;
 
     // Verify the invite exists and matches the organization
     const invite = await prisma.organizationInvite.findUnique({
@@ -16,7 +16,7 @@ export async function POST(
       include: { organization: true },
     });
 
-    if (!invite || invite.organizationId !== organizationId) {
+    if (!invite) {
       return NextResponse.json(
         { error: 'Invalid invite' },
         { status: 404 }
@@ -42,7 +42,7 @@ export async function POST(
     // Check if user is already a member
     const existingMembership = await prisma.organizationMember.findFirst({
       where: {
-        organizationId,
+        organizationId: invite.organizationId,
         userId: session.user.id,
       },
     });
@@ -57,7 +57,7 @@ export async function POST(
     // Create new membership
     await prisma.organizationMember.create({
       data: {
-        organizationId,
+        organizationId: invite.organizationId,
         userId: session.user.id,
         role: 'MEMBER',
       },
