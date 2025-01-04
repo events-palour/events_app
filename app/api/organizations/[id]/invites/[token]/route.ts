@@ -1,17 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
-import { type NextRequest } from 'next/server';
 
-// Define the params type according to Next.js App Router conventions
-type Params = {
-  id: string;
-  token: string;
-};
-
+// Use the built-in Next.js types for route handlers
 export async function POST(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: { id: string; token: string } }
 ) {
   try {
     const organizationId = params.id;
