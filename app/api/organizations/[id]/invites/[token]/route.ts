@@ -3,12 +3,21 @@ import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 import { type NextRequest } from 'next/server';
 
+// Define the params type according to Next.js App Router conventions
+type RouteContext = {
+  params: {
+    id: string;
+    token: string;
+  };
+};
+
 export async function POST(
   request: NextRequest,
-  context: { params: { organizationId: string; token: string } }
+  context: RouteContext
 ) {
   try {
-    const { organizationId, token } = context.params;
+    const organizationId = context.params.id;
+    const { token } = context.params;
 
     // Verify the invite exists and matches the organization
     const invite = await prisma.organizationInvite.findUnique({
@@ -80,3 +89,4 @@ export async function POST(
     );
   }
 }
+
