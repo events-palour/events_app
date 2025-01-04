@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 
-// In Next.js 14+, route handlers use a different type for the context
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string; token: string } }
+  { params }: { params: { id: string; token: string } }
 ) {
   try {
-    const organizationId = context.params.id;
-    const token = context.params.token;
+    const organizationId = params.id;
+    const token = params.token;
 
+    // Rest of your existing logic...
     const invite = await prisma.organizationInvite.findUnique({
       where: { token },
       include: { organization: true },
