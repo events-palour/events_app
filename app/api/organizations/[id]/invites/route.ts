@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
+interface RouteContext {
+  params: { id: string }
+}
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  req: NextRequest,
+  { params }: RouteContext
+): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
     if (!session.user) {
@@ -17,7 +22,7 @@ export async function POST(
     const organizationId = params.id;
 
     // Validate request body
-    const body = await request.json();
+    const body = await req.json();
     const validatedData = inviteMemberSchema.parse(body);
 
     // Get organization details
