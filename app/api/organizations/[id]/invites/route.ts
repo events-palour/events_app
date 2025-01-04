@@ -5,15 +5,10 @@ import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
-// Define the params interface according to Next.js 15 conventions
-interface RouteParams {
-  id: string;
-}
-
-// Use the correct type definition for Next.js 15 route handlers
+// Using inline type for the params
 export async function POST(
   request: NextRequest,
-  { params }: { params: RouteParams }
+  { params }: { params: { [key: string]: string | string[] } }
 ): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
@@ -21,7 +16,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const organizationId = params.id;
+    const organizationId = params.id as string;
 
     // Validate request body
     const body = await request.json();
