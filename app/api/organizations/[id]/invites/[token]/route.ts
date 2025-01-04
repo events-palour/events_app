@@ -26,7 +26,6 @@ export async function POST(
         { status: 404 }
       );
     }
-
     if (invite.expiresAt < new Date()) {
       return NextResponse.json(
         { error: 'Invite expired' },
