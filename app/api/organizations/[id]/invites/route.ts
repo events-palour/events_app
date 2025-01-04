@@ -4,15 +4,9 @@ import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
-type Context = {
-  params: {
-    id: string;
-  };
-};
-
 export async function POST(
   request: NextRequest,
-  { params }: Context
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getCurrentSession();
