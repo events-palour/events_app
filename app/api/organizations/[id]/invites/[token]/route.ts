@@ -1,13 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; token: string } }
-) {
+type Context = {
+  params: { id: string; token: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export async function POST(request: NextRequest, context: Context) {
   try {
-    const { id: organizationId, token } = params;
+    const { id: organizationId, token } = context.params;
 
     const invite = await prisma.organizationInvite.findUnique({
       where: { token },
@@ -15,16 +17,25 @@ export async function POST(
     });
 
     if (!invite || invite.organizationId !== organizationId) {
-      return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
+      return new Response(
+        JSON.stringify({ error: 'Invalid invite' }),
+        { status: 404 }
+      );
     }
 
     if (invite.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Invite expired' }, { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'Invite expired' }),
+        { status: 400 }
+      );
     }
 
     const session = await getCurrentSession();
     if (!session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401 }
+      );
     }
 
     const existingMembership = await prisma.organizationMember.findFirst({
@@ -35,8 +46,8 @@ export async function POST(
     });
 
     if (existingMembership) {
-      return NextResponse.json(
-        { error: 'You are already a member of this organization' },
+      return new Response(
+        JSON.stringify({ error: 'You are already a member of this organization' }),
         { status: 400 }
       );
     }
@@ -49,16 +60,26 @@ export async function POST(
       },
     });
 
-    await prisma.organizationInvite.delete({ where: { token } });
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully joined ${invite.organization.name}`,
+    await prisma.organizationInvite.delete({
+      where: { token }
     });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Successfully joined ${invite.organization.name}`
+      }),
+      { 
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
   } catch (error) {
     console.error('Failed to accept invite:', error);
-    return NextResponse.json(
-      { error: 'Failed to accept invite' },
+    return new Response(
+      JSON.stringify({ error: 'Failed to accept invite' }),
       { status: 500 }
     );
   }
