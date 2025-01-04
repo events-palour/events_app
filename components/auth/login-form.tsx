@@ -107,6 +107,7 @@ export function LoginForm({
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={isLoading}
                                     required
+                                    
                                 />
                             </div>
                             <Button type="submit" className="w-full" disabled={isLoading}>
