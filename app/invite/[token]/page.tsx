@@ -11,7 +11,7 @@ import { use } from 'react';
 export default function InviteAcceptancePage({ params }: { params: Promise<{ token: string }> }) {
   const [isLoading, setIsLoading] = useState(true);
   const [organizationName, setOrganizationName] = useState('');
-  const [organizationId, setOrganizationId] = useState('');
+  const [id, setOrganizationId] = useState('');
   const router = useRouter();
   
   
@@ -45,7 +45,7 @@ export default function InviteAcceptancePage({ params }: { params: Promise<{ tok
   const acceptInvite = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/organizations/${organizationId}/invites/${token}`, {
+      const response = await fetch(`/api/organizations/${id}/invites/${token}`, {
         method: 'POST',
       });
 
