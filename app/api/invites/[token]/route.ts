@@ -41,7 +41,8 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Failed to accept invite:', error);
     return NextResponse.json({ error: 'Failed to accept invite' }, { status: 500 });
   }
 }
