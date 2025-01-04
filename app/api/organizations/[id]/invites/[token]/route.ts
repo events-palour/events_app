@@ -5,10 +5,10 @@ import { type NextRequest } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
-): Promise<NextResponse> {
+  context: { params: { organizationId: string; token: string } }
+) {
   try {
-    const token = (await params).token;
+    const { organizationId, token } = context.params;
 
     // Verify the invite exists and matches the organization
     const invite = await prisma.organizationInvite.findUnique({
@@ -16,7 +16,7 @@ export async function POST(
       include: { organization: true },
     });
 
-    if (!invite) {
+    if (!invite || invite.organizationId !== organizationId) {
       return NextResponse.json(
         { error: 'Invalid invite' },
         { status: 404 }
@@ -42,7 +42,7 @@ export async function POST(
     // Check if user is already a member
     const existingMembership = await prisma.organizationMember.findFirst({
       where: {
-        organizationId: invite.organizationId,
+        organizationId,
         userId: session.user.id,
       },
     });
@@ -57,7 +57,7 @@ export async function POST(
     // Create new membership
     await prisma.organizationMember.create({
       data: {
-        organizationId: invite.organizationId,
+        organizationId,
         userId: session.user.id,
         role: 'MEMBER',
       },
@@ -74,16 +74,9 @@ export async function POST(
     });
   } catch (error) {
     console.error('Failed to accept invite:', error);
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    }
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { error: 'Failed to accept invite' },
       { status: 500 }
     );
   }
 }
-

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 
-type Context = {
+// Update the params type to match Next.js conventions
+type RouteParams = {
   params: {
     token: string;
   };
@@ -10,7 +11,8 @@ type Context = {
 
 export async function POST(
   request: NextRequest,
-  { params }: Context
+  // Use the correct type for route parameters
+  { params }: RouteParams
 ) {
   try {
     const { token } = params;
@@ -63,3 +65,4 @@ export async function POST(
     );
   }
 }
+
