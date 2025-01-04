@@ -1,13 +1,19 @@
-import { type NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { getCurrentSession } from '@/lib/server/session';
 import { sendInviteEmail } from '@/lib/server/email';
 import { inviteMemberSchema } from '@/lib/server/organization';
 
+// Define the params interface according to Next.js 15 conventions
+interface RouteParams {
+  id: string;
+}
+
+// Use the correct type definition for Next.js 15 route handlers
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: RouteParams }
 ): Promise<NextResponse> {
   try {
     const session = await getCurrentSession();
@@ -18,7 +24,7 @@ export async function POST(
     const organizationId = params.id;
 
     // Validate request body
-    const body = await req.json();
+    const body = await request.json();
     const validatedData = inviteMemberSchema.parse(body);
 
     // Get organization details
