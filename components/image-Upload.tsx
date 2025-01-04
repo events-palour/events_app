@@ -31,23 +31,20 @@ export const ImageUpload = ({ value, onChange, error }: ImageUploadProps) => {
   return (
     <div className="space-y-2">
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors ${
-          error ? 'border-red-500' : ''
-        }`}
+        className={`border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors ${error ? 'border-red-500' : ''
+          }`}
         onClick={() => document.getElementById('logo-upload')?.click()}
       >
         {value ? (
           <div className="relative w-32 h-32 mx-auto">
-            <div className="relative w-full h-full">
-              <Image
-                src={value}
-                alt="Organization logo"
-                fill
-                sizes="128px"
-                className="object-cover rounded-lg"
-                priority
-              />
-            </div>
+            <Image
+              src={value}
+              alt="Organization logo"
+              width={128}
+              height={128}
+              className="object-cover rounded-lg"
+              priority
+            />
             <Button
               variant="destructive"
               size="icon"
